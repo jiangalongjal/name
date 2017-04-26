@@ -1,0 +1,88 @@
+管道流可以很方便的实现两个线程之间的通信，在启动线程前，只需要将两个线程的管道流连接到一起就可以
+下面我们用代码来了解一下，管道流的基本操作：
+
+
+接受端（管道输入流=PipedInputStream）
+package com.io;
+
+import java.io.IOException;
+import java.io.PipedInputStream;
+
+public class Receive implements Runnable{
+	private PipedInputStream pis=null;
+	public Receive(){
+		pis=new PipedInputStream();
+	}
+	public PipedInputStream getPis(){
+		return pis;
+	}
+	public void run(){
+		byte[] bys= new byte[1024];
+		int len = 0;
+		try {
+			len = pis.read(bys);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			pis.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("-->"+new String(bys,0,len));
+	}
+}
+
+发送端（管道输出流=PipedOutputSteam）
+package com.io;
+
+import java.io.IOException;
+import java.io.PipedOutputStream;
+
+public class Send implements Runnable {
+	private PipedOutputStream pos=null;
+	public Send(){
+		pos=new PipedOutputStream();
+	}
+	public PipedOutputStream getPos (){
+		return pos;
+	}
+	public void run(){
+		String s="峰峰邀请班花看村长家喂的猪";
+		try {
+			pos.write(s.getBytes());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		try {
+			pos.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+}
+
+执行内容
+package com.io;
+
+import java.io.IOException;
+
+public class PipedDome {
+
+	public static void main(String[] args) {
+		Send send=new Send();
+		Receive rec= new Receive();
+		try {
+			send.getPos().connect(rec.getPis());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		new Thread(send).start();
+		new Thread(rec).start();
+		
+	}
+
+}
